@@ -13,6 +13,9 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - OLLAMA_HOST=http://host.docker.internal:11434
+      # Blackwell optimizations
+      - TORCH_CUDNN_V8_API_ENABLED=1
+      - CUDNN_BENCHMARK=1
     command: bash -c "
       pip install --break-system-packages --no-cache-dir
         ftfy
@@ -20,7 +23,8 @@ services:
         onnxruntime
         pedalboard
         modelscope
+        sageattention
       &&
-      python main.py --listen 0.0.0.0 --port 8188 --highvram --use-flash-attention --fp16-unet --fast
+      python main.py --listen 0.0.0.0 --port 8188 --highvram --use-flash-attention --bf16-unet --fast --force-channels-last --dont-upcast-attention
       "
     restart: unless-stopped
