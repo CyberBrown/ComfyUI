@@ -20,7 +20,7 @@ try:
         if cuda_version < (13,):
             ck.registry.disable("cuda")
 
-    ck.registry.disable("triton")
+    # ck.registry.disable("triton")  # Enable triton backend for faster FP8/NVFP4 ops on Blackwell
     for k, v in ck.list_backends().items():
         logging.info(f"Found comfy_kitchen backend {k}: {v}")
 except ImportError as e:

@@ -10,12 +10,24 @@ services:
     working_dir: /workspace/ComfyUI
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    ipc: host
+    shm_size: '16g'
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      stack:
+        soft: 67108864
+        hard: 67108864
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - OLLAMA_HOST=http://host.docker.internal:11434
-      # Blackwell optimizations
+      # Blackwell / GB10 unified memory optimizations
       - TORCH_CUDNN_V8_API_ENABLED=1
       - CUDNN_BENCHMARK=1
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True,garbage_collection_threshold:0.8
+      - CUDA_CACHE_MAXSIZE=4294967296
+      - CUDA_MANAGED_FORCE_DEVICE_ALLOC=1
     command: bash -c "
       pip install --break-system-packages --no-cache-dir
         ftfy
@@ -23,8 +35,20 @@ services:
         onnxruntime
         pedalboard
         modelscope
-        sageattention
+        /workspace/ComfyUI/wheels/sageattention-2.2.0-cp312-cp312-linux_aarch64.whl
+        /workspace/ComfyUI/wheels/cublas_ops-0.0.5-cp312-cp312-linux_aarch64.whl
       &&
-      python main.py --listen 0.0.0.0 --port 8188 --highvram --use-flash-attention --bf16-unet --fast --force-channels-last --dont-upcast-attention
+      python main.py
+        --listen 0.0.0.0
+        --port 8188
+        --gpu-only
+        --use-flash-attention
+        --bf16-unet
+        --bf16-vae
+        --fast
+        --dont-upcast-attention
+        --disable-pinned-memory
+        --force-channels-last
+        --cache-lru 30
       "
     restart: unless-stopped
