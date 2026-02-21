@@ -35,6 +35,8 @@ services:
         onnxruntime
         pedalboard
         modelscope
+        timm
+        groundingdino-py
         /workspace/ComfyUI/wheels/sageattention-2.2.0-cp312-cp312-linux_aarch64.whl
         /workspace/ComfyUI/wheels/cublas_ops-0.0.5-cp312-cp312-linux_aarch64.whl
       &&
