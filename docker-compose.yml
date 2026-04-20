@@ -1,12 +1,16 @@
 services:
   comfyui:
-    image: comfyui-audio:2026-01-15
+    image: comfyui-gb10:latest
     container_name: comfyui-optimized
     runtime: nvidia
     ports:
       - "8188:8188"
     volumes:
       - .:/workspace/ComfyUI
+      # sam3d_spark custom node lives in a sibling repo and is symlinked in.
+      # Mount the target at its host path so the symlink resolves inside the
+      # container.
+      - /home/chris/projects/sam-3d-spark:/home/chris/projects/sam-3d-spark:ro
     working_dir: /workspace/ComfyUI
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -28,6 +32,10 @@ services:
       - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True,garbage_collection_threshold:0.8
       - CUDA_CACHE_MAXSIZE=4294967296
       - CUDA_MANAGED_FORCE_DEVICE_ALLOC=1
+      # Secrets live in Proton Pass: Claude vault → "ComfyUI Spark / API keys".
+      # Compose reads them from the local .env file (gitignored).
+      - FAL_KEY=${FAL_KEY}
+      - BFL_API_KEY=${BFL_API_KEY}
     command: bash -c "
       pip install --break-system-packages --no-cache-dir
         ftfy
@@ -37,6 +45,8 @@ services:
         modelscope
         timm
         groundingdino-py
+        rembg
+        fal-client
         /workspace/ComfyUI/wheels/sageattention-2.2.0-cp312-cp312-linux_aarch64.whl
         /workspace/ComfyUI/wheels/cublas_ops-0.0.5-cp312-cp312-linux_aarch64.whl
       &&
